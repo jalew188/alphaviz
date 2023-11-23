@@ -2,6 +2,9 @@ import os
 import torch
 import plotly
 
+from plotly.subplots import make_subplots
+from collections import defaultdict
+
 import pandas as pd
 import numpy as np
 
@@ -9,14 +12,15 @@ import plotly.graph_objects as go
 
 from .msplot_utils import _plot_scatter
 
-color_map:dict = {
+color_map:dict = defaultdict(lambda:"red")
+color_map.update({
     '-': 'lightgrey', # '-' means umnatched
     'b': 'blue', 
     'y': 'red',
     'c': 'purple', 
     'z': 'orange',
     'M': 'black',
-}
+})
 
 class MS2_Plot:
     vertical_spacing = 0.05
@@ -119,7 +123,7 @@ class MS2_Plot:
 
     def _init_plot(self, title):
 
-        self.fig = plotly.subplots.make_subplots(
+        self.fig = make_subplots(
             rows=self.rows,
             cols=3, 
             shared_xaxes=True,
@@ -166,13 +170,13 @@ class MassErrPlot:
             '<b>Mass err:</b> %{y}'
         )
 
-    def plot(self, plot_df):
-        self._plot_one_ion(
-            plot_df, 'b', color_map['b']
-        )
-        self._plot_one_ion(
-            plot_df, 'y', color_map['y']
-        )
+    def plot(self, plot_df:pd.DataFrame):
+        ion_types = plot_df.ions.str[0].unique()
+        for ion_type in ion_types:
+            if ion_type == "-": continue
+            self._plot_one_ion(
+                plot_df, ion_type, color_map[ion_type]
+            )
         self.fig.update_yaxes(
             title_text='m/z err',
             row=self.row,col=self.col
